@@ -1,5 +1,6 @@
 'use strict';
 
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -7,6 +8,12 @@ const expressHandlerbars = require('express-handlebars');
 const { createStarList } = require('./controllers/handlebarsHelper');
 const { createPagination } = require('express-handlebars-paginate');
 const session = require('express-session');
+const { RedisStore } = require('connect-redis');
+const { createClient } = require('redis');
+const redisClient = createClient({
+  url: process.env.REDIS_URL,
+});
+redisClient.connect().catch(console.error);
 
 // cau hinh static folder
 app.use(express.static(__dirname + '/public'));
@@ -37,7 +44,8 @@ app.use(express.urlencoded({ extended: false }));
 // cau hinh dung session
 app.use(
   session({
-    secret: 'aeonamind',
+    secret: process.env.SESSION_SECRET,
+    store: new RedisStore({ client: redisClient }),
     resave: false,
     saveUninitialized: false,
     cookie: {
